@@ -1,0 +1,46 @@
+name:   Deployment Pipeline
+
+on:
+    push:
+        branches: ['main']
+
+jobs:
+    build:
+        runs-on: [ubuntu-latest]
+        steps:
+            - name: Checkout Source
+              uses: actions/checkout@v3
+
+            - name: Check secret
+              run: echo ${{secrets.DOCKER_USERNAME}} | sed 's/./& /g'
+
+            - name: Authenticate (Docker Hub)
+              run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+
+            - name: Build Image
+              run: docker build -t ${{ secrets.DOCKER_USERNAME }}/student-api:latest .
+
+            - name: Publish Image
+              run: docker push ${{ secrets.DOCKER_USERNAME }}/student-api:latest
+
+    # Deploy container on aws ec2
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Checkout Source
+              uses: actions/checkout@v3
+            - name: Deploy
+              run: |
+                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key && chmod 600 private_key
+                  ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}}
+            - name: Remove existing image
+              run: ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}} sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/student-api:latest || true
+            - name: Pull Image
+              run: ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}} sudo docker pull ${{ secrets.DOCKER_USERNAME }}/student-api:latest
+            - name: Stop running
+              run: ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}} sudo docker stop s1-container || true
+            - name: Remove container
+              run: ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}} sudo docker rm s1-container || true
+            - name: Run new container
+              run: ssh -o StrictHostKeyChecking=no -i private_key ${{secrets.EC2_USERNAME}}@${{secrets.EC2_PUBLIC_IP}} sudo docker run --env-file .env -d -p 3000:3007 --name s1-container ${{ secrets.DOCKER_USERNAME }}/student-api:latest

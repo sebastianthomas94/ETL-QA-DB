@@ -1,0 +1,10 @@
+services:
+  server:
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT}
+      CLIENT_URL: ${CLIENT_URL}
+    ports:
+      - 3000:${PORT}
