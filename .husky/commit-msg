@@ -1,5 +1,1 @@
-#!/bin/sh
-echo $(dirname "$0")
-. "$(dirname "$0")/_/husky.sh"
-
 pnpm dlx commitlint --edit \
