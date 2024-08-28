@@ -7,9 +7,11 @@ import { validate } from "./common/config/env.config";
 import { THROTTLER_CONFIG } from "./common/config/throttler.config";
 import { EnvironmentService } from "./common/services/environment.service";
 import { APP_GUARD } from "@nestjs/core";
+import { LoggerModule } from "nestjs-pino";
+import { pinoConfig } from "@common/config/pino.config";
 
 @Module({
-    imports: [ConfigModule.forRoot({ validate }), ThrottlerModule.forRoot(THROTTLER_CONFIG)],
+    imports: [ConfigModule.forRoot({ validate }), ThrottlerModule.forRoot(THROTTLER_CONFIG), LoggerModule.forRoot(pinoConfig)],
     controllers: [AppController],
     providers: [
         AppService,
