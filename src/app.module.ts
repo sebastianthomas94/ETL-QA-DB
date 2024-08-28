@@ -9,9 +9,15 @@ import { EnvironmentService } from "./common/services/environment.service";
 import { APP_GUARD } from "@nestjs/core";
 import { LoggerModule } from "nestjs-pino";
 import { pinoConfig } from "@common/config/pino.config";
+import { RouteModule } from "./route.module";
 
 @Module({
-    imports: [ConfigModule.forRoot({ validate }), ThrottlerModule.forRoot(THROTTLER_CONFIG), LoggerModule.forRoot(pinoConfig)],
+    imports: [
+        ConfigModule.forRoot({ validate }),
+        ThrottlerModule.forRoot(THROTTLER_CONFIG),
+        LoggerModule.forRoot(pinoConfig),
+        RouteModule,
+    ],
     controllers: [AppController],
     providers: [
         AppService,
