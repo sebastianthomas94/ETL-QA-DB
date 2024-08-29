@@ -20,5 +20,23 @@ module.exports = {
         "@typescript-eslint/no-unnecessary-condition": "error",
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": "error",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                custom: {
+                    match: true,
+                    regex: "^I[A-Z]",
+                },
+                format: ["PascalCase"],
+                selector: "interface",
+            },
+            {
+                format: ["PascalCase"],
+                leadingUnderscore: "allow",
+                prefix: ["is", "has"],
+                selector: "variable",
+                types: ["boolean"],
+            },
+        ],
     },
 };
