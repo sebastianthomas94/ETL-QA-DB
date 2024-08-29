@@ -16,5 +16,6 @@ module.exports = {
     ignorePatterns: [".eslintrc.js", "*.md"],
     rules: {
         "@typescript-eslint/require-await": "error",
+        "@typescript-eslint/no-floating-promises": "error",
     },
 };
