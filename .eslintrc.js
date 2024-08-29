@@ -17,5 +17,6 @@ module.exports = {
     rules: {
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-unnecessary-condition": "error",
     },
 };
