@@ -38,5 +38,7 @@ module.exports = {
                 types: ["boolean"],
             },
         ],
+        "max-params": "off",
+        "@typescript-eslint/max-params": "error",
     },
 };
