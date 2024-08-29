@@ -1,9 +1,8 @@
-import { HttpAdapterHost, NestFactory } from "@nestjs/core";
+import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule } from "@nestjs/swagger";
 import { swaggerConfig } from "./common/config/swagger.config";
 import { EnvironmentService } from "./common/services/environment.service";
-import { AllExceptionsFilter } from "./common/filter/all-exceptions.filter";
 import { corsConfig } from "./common/config/cors.config";
 import { ValidationPipe } from "@nestjs/common";
 
@@ -11,9 +10,6 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const envService = app.get(EnvironmentService);
 
-    const { httpAdapter } = app.get(HttpAdapterHost);
-
-    app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
     app.setGlobalPrefix("api");
     app.enableCors(corsConfig);
 
