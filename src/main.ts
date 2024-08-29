@@ -4,7 +4,7 @@ import { SwaggerModule } from "@nestjs/swagger";
 import { swaggerConfig } from "./common/config/swagger.config";
 import { EnvironmentService } from "./common/services/environment.service";
 import { corsConfig } from "./common/config/cors.config";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { AllExceptionsFilter } from "@common/filter/all-exceptions.filter";
 import helmet from "helmet";
 
@@ -25,6 +25,11 @@ async function bootstrap() {
             forbidNonWhitelisted: true,
         }),
     );
+
+    app.enableVersioning({
+        type: VersioningType.URI,
+        defaultVersion: "1",
+    });
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup("docs", app, document);
