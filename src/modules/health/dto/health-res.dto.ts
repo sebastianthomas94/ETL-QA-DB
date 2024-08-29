@@ -1,3 +1,7 @@
 export class HealthCheckResDto {
-    status: "Ok";
+    /**
+     * status of application's health
+     * @example "Ok"
+     */
+    status: string;
 }
