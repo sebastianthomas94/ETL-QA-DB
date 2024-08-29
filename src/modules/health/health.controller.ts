@@ -11,6 +11,6 @@ export class HealthController {
     @Get()
     @ApiOperation({ summary: "Check the health of application" })
     checkHealth(): HealthCheckResDto {
-        return { status: "Ok" };
+        return { status: "Ok", uptime: process.uptime() };
     }
 }
