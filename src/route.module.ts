@@ -1,6 +1,7 @@
+import { HealthModule } from "@modules/health/health.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-    imports: [], // import route modules here
+    imports: [HealthModule],
 })
 export class RouteModule {}

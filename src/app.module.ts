@@ -1,6 +1,4 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
 import { validate } from "./common/config/env.config";
@@ -18,9 +16,7 @@ import { APP_GUARD } from "@nestjs/core";
         LoggerModule.forRoot(pinoConfig),
         RouteModule,
     ],
-    controllers: [AppController],
     providers: [
-        AppService,
         EnvironmentService,
         {
             provide: APP_GUARD,
