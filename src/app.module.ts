@@ -6,10 +6,10 @@ import { ConfigModule } from "@nestjs/config";
 import { validate } from "./common/config/env.config";
 import { THROTTLER_CONFIG } from "./common/config/throttler.config";
 import { EnvironmentService } from "./common/services/environment.service";
-import { APP_GUARD } from "@nestjs/core";
 import { LoggerModule } from "nestjs-pino";
 import { pinoConfig } from "@common/config/pino.config";
 import { RouteModule } from "./route.module";
+import { APP_GUARD } from "@nestjs/core";
 
 @Module({
     imports: [
