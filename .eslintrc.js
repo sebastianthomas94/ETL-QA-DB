@@ -14,4 +14,7 @@ module.exports = {
         jest: true,
     },
     ignorePatterns: [".eslintrc.js", "*.md"],
+    rules: {
+        "@typescript-eslint/require-await": "error",
+    },
 };
