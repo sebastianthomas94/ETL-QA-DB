@@ -6,7 +6,7 @@ module.exports = {
         sourceType: "module",
         extraFileExtensions: [".json"],
     },
-    plugins: ["@typescript-eslint/eslint-plugin"],
+    plugins: ["@typescript-eslint/eslint-plugin", "max-params-no-constructor"],
     extends: ["plugin:@typescript-eslint/recommended"],
     root: true,
     env: {
@@ -38,7 +38,6 @@ module.exports = {
                 types: ["boolean"],
             },
         ],
-        "max-params": "off",
-        "@typescript-eslint/max-params": "error",
+        "max-params-no-constructor/max-params-no-constructor": "error",
     },
 };

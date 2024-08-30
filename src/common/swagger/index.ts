@@ -14,7 +14,7 @@ import { RequestTimeOutError } from "./dtos/timeout-request.dto";
 import { UnauthorizedError } from "./dtos/unauthorized-error.dto";
 import { ConflictError } from "./dtos/conflict-error.dto";
 
-interface ApiErrorResponseOptions {
+interface IApiErrorResponseOptions {
     timeout?: boolean;
     internalServerError?: boolean;
     unauthorized?: boolean;
@@ -23,7 +23,7 @@ interface ApiErrorResponseOptions {
     conflict?: boolean;
 }
 
-export function ApiErrorResponse(options: ApiErrorResponseOptions) {
+export function ApiErrorResponse(options: IApiErrorResponseOptions) {
     const decorators = [];
 
     if (options.internalServerError) {
