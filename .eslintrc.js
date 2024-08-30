@@ -37,6 +37,11 @@ module.exports = {
                 selector: "variable",
                 types: ["boolean"],
             },
+
+            {
+                selector: "typeLike",
+                format: ["PascalCase"],
+            },
         ],
         "max-params-no-constructor/max-params-no-constructor": "error",
     },
