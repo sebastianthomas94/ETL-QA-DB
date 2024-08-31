@@ -6,7 +6,7 @@ module.exports = {
         sourceType: "module",
         extraFileExtensions: [".json"],
     },
-    plugins: ["@typescript-eslint/eslint-plugin"],
+    plugins: ["@typescript-eslint/eslint-plugin", "max-params-no-constructor"],
     extends: ["plugin:@typescript-eslint/recommended"],
     root: true,
     env: {
@@ -33,12 +33,16 @@ module.exports = {
             {
                 format: ["PascalCase"],
                 leadingUnderscore: "allow",
-                prefix: ["is", "has"],
+                prefix: ["is", "has", "should", "can", "did", "will"],
                 selector: "variable",
                 types: ["boolean"],
             },
+
+            {
+                selector: "typeLike",
+                format: ["PascalCase"],
+            },
         ],
-        "max-params": "off",
-        "@typescript-eslint/max-params": "error",
+        "max-params-no-constructor/max-params-no-constructor": "error",
     },
 };

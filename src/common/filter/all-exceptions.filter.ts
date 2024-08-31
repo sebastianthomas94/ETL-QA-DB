@@ -29,8 +29,12 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
 
         if (exception instanceof HttpException) {
             const errorObject = exception.getResponse() as HttpExceptionResponse;
-            const errMsg = Array.isArray(errorObject.message) ? errorObject.message.join(", ") : errorObject.message;
-            errorMessage = errMsg ?? "An unknown error occured. [EH1]";
+            if (errorObject.message) {
+                const errMsg = Array.isArray(errorObject.message)
+                    ? errorObject.message.join(", ")
+                    : errorObject.message;
+                errorMessage = errMsg;
+            }
         }
 
         const myResponseObj: ErrorResponse = {
