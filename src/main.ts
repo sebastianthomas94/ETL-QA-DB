@@ -20,9 +20,10 @@ async function bootstrap() {
     app.enableCors(corsConfig);
     app.useGlobalPipes(
         new ValidationPipe({
-            disableErrorMessages: envService.NODE_ENV == "production",
+            disableErrorMessages: envService.NODE_ENV === "production",
             whitelist: true,
             forbidNonWhitelisted: true,
+            forbidUnknownValues: true,
         }),
     );
 

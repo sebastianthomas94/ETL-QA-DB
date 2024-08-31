@@ -6,8 +6,8 @@ module.exports = {
         sourceType: "module",
         extraFileExtensions: [".json"],
     },
-    plugins: ["@typescript-eslint/eslint-plugin", "max-params-no-constructor"],
-    extends: ["plugin:@typescript-eslint/recommended"],
+    plugins: ["@typescript-eslint/eslint-plugin", "max-params-no-constructor", "@darraghor/nestjs-typed"],
+    extends: ["plugin:@typescript-eslint/recommended", "plugin:@darraghor/nestjs-typed/recommended"],
     root: true,
     env: {
         node: true,
@@ -44,5 +44,13 @@ module.exports = {
             },
         ],
         "max-params-no-constructor/max-params-no-constructor": "error",
+        "@darraghor/nestjs-typed/api-method-should-specify-api-response": "off",
+        "@darraghor/nestjs-typed/injectable-should-be-provided": [
+            "error",
+            {
+                src: ["src/**/*.ts"],
+                filterFromPaths: ["node_modules", ".test.", ".spec."],
+            },
+        ],
     },
 };
