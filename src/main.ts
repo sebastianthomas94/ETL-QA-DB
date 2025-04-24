@@ -7,6 +7,7 @@ import { corsConfig } from "./common/config/cors.config";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { AllExceptionsFilter } from "@common/filter/all-exceptions.filter";
 import helmet from "helmet";
+import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -20,9 +21,10 @@ async function bootstrap() {
     app.enableCors(corsConfig);
     app.useGlobalPipes(
         new ValidationPipe({
-            disableErrorMessages: envService.NODE_ENV == "production",
+            disableErrorMessages: envService.NODE_ENV === "production",
             whitelist: true,
             forbidNonWhitelisted: true,
+            forbidUnknownValues: true,
         }),
     );
 
@@ -30,6 +32,9 @@ async function bootstrap() {
         type: VersioningType.URI,
         defaultVersion: "1",
     });
+
+    const logger = app.get<Logger>(Logger);
+    app.useLogger(logger);
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup("docs", app, document);
