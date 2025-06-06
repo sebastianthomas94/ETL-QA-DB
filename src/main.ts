@@ -2,7 +2,7 @@ import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule } from "@nestjs/swagger";
 import { swaggerConfig } from "./common/config/swagger.config";
-import { EnvironmentService } from "./common/services/environment.service";
+import { EnvironmentService } from "./common/global/environment.service";
 import { corsConfig } from "./common/config/cors.config";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { AllExceptionsFilter } from "@common/filter/all-exceptions.filter";
@@ -21,7 +21,7 @@ async function bootstrap() {
     app.enableCors(corsConfig);
     app.useGlobalPipes(
         new ValidationPipe({
-            disableErrorMessages: envService.NODE_ENV === "production",
+            disableErrorMessages: envService.isProduction,
             whitelist: true,
             forbidNonWhitelisted: true,
             forbidUnknownValues: true,
