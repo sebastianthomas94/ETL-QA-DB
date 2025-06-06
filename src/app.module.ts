@@ -6,9 +6,18 @@ import { pinoConfig } from "@common/config/pino.config";
 import { RouteModule } from "./route.module";
 import { APP_GUARD } from "@nestjs/core";
 import { GlobalModule } from "@common/global/global.module";
+import { EnvironmentService } from "@common/global/environment.service";
 
 @Module({
-    imports: [GlobalModule, ThrottlerModule.forRoot(THROTTLER_CONFIG), LoggerModule.forRoot(pinoConfig), RouteModule],
+    imports: [
+        GlobalModule,
+        ThrottlerModule.forRoot(THROTTLER_CONFIG),
+        LoggerModule.forRootAsync({
+            useFactory: (envService) => pinoConfig(envService),
+            inject: [EnvironmentService],
+        }),
+        RouteModule,
+    ],
     providers: [
         {
             provide: APP_GUARD,
