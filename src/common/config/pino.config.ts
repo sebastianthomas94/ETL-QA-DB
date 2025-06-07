@@ -1,8 +1,14 @@
-export const pinoConfig = {
+import { EnvironmentService } from "@common/global/environment.service";
+import { randomUUID } from "crypto";
+import { Params } from "nestjs-pino";
+
+export const pinoConfig = (envService: EnvironmentService): Params => ({
     pinoHttp: {
         name: "Pino Logger",
-        level: process.env.NODE_ENV !== "production"? "debug": "info",
-        transport: process.env.NODE_ENV !== "production"? {target: "pino-pretty"}: undefined,
+        level: envService.isProduction ? "info" : "debug",
+        transport: envService.isProduction ? undefined : { target: "pino-pretty" },
         autoLogging: false,
-    }
-}
+        quietReqLogger: true,
+        genReqId: () => randomUUID(),
+    },
+});

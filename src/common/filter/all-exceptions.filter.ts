@@ -1,3 +1,4 @@
+import { snakeCaseToTitleCase } from "@common/utils/snake-case-to-title-case.util";
 import { Catch, ArgumentsHost, HttpStatus, HttpException } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import { Request, Response } from "express";
@@ -25,16 +26,15 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
         const statusCode =
             exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
-        let errorMessage = statusCode === 500 ? "An internal server error occured." : "An unknown error occured.";
+        const statusName = HttpStatus[statusCode] ?? HttpStatus[HttpStatus.INTERNAL_SERVER_ERROR];
+        let errorMessage = snakeCaseToTitleCase(statusName.toLocaleLowerCase());
 
         if (exception instanceof HttpException) {
             const errorObject = exception.getResponse() as HttpExceptionResponse;
-            if (errorObject.message) {
-                const errMsg = Array.isArray(errorObject.message)
-                    ? errorObject.message.join(", ")
-                    : errorObject.message;
-                errorMessage = errMsg;
-            }
+            const errMsg: string | undefined = Array.isArray(errorObject.message)
+                ? errorObject.message.join(", ")
+                : errorObject.message;
+            if (errMsg) errorMessage = errMsg;
         }
 
         const myResponseObj: ErrorResponse = {

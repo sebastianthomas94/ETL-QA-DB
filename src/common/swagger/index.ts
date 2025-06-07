@@ -1,4 +1,4 @@
-import { applyDecorators } from "@nestjs/common";
+import { applyDecorators, HttpStatus } from "@nestjs/common";
 import {
     ApiInternalServerErrorResponse,
     ApiUnauthorizedResponse,
@@ -14,71 +14,42 @@ import { RequestTimeOutError } from "./dtos/timeout-request.dto";
 import { UnauthorizedError } from "./dtos/unauthorized-error.dto";
 import { ConflictError } from "./dtos/conflict-error.dto";
 
-interface IApiErrorResponseOptions {
-    timeout?: boolean;
-    internalServerError?: boolean;
-    unauthorized?: boolean;
-    notFound?: boolean;
-    badRequest?: boolean;
-    conflict?: boolean;
-}
+type SupportedErrors =
+    | HttpStatus.INTERNAL_SERVER_ERROR
+    | HttpStatus.UNAUTHORIZED
+    | HttpStatus.NOT_FOUND
+    | HttpStatus.BAD_REQUEST
+    | HttpStatus.CONFLICT
+    | HttpStatus.REQUEST_TIMEOUT;
 
-export function ApiErrorResponse(options: IApiErrorResponseOptions) {
-    const decorators = [];
+const errorsMap: Record<SupportedErrors, MethodDecorator & ClassDecorator> = {
+    [HttpStatus.INTERNAL_SERVER_ERROR]: ApiInternalServerErrorResponse({
+        description: "Internal server error.",
+        type: InternalServerError,
+    }),
+    [HttpStatus.UNAUTHORIZED]: ApiUnauthorizedResponse({
+        description: "Unauthorized.",
+        type: UnauthorizedError,
+    }),
+    [HttpStatus.NOT_FOUND]: ApiNotFoundResponse({
+        description: "Not found.",
+        type: NotFoundError,
+    }),
+    [HttpStatus.BAD_REQUEST]: ApiBadRequestResponse({
+        description: "Bad request.",
+        type: BadRequestError,
+    }),
+    [HttpStatus.CONFLICT]: ApiConflictResponse({
+        description: "Conflict.",
+        type: ConflictError,
+    }),
+    [HttpStatus.REQUEST_TIMEOUT]: ApiRequestTimeoutResponse({
+        description: "Request time out",
+        type: RequestTimeOutError,
+    }),
+};
 
-    if (options.internalServerError) {
-        decorators.push(
-            ApiInternalServerErrorResponse({
-                description: "Internal server error.",
-                type: InternalServerError,
-            }),
-        );
-    }
-
-    if (options.unauthorized) {
-        decorators.push(
-            ApiUnauthorizedResponse({
-                description: "Unauthorized.",
-                type: UnauthorizedError,
-            }),
-        );
-    }
-
-    if (options.notFound) {
-        decorators.push(
-            ApiNotFoundResponse({
-                description: "Not found.",
-                type: NotFoundError,
-            }),
-        );
-    }
-
-    if (options.badRequest) {
-        decorators.push(
-            ApiBadRequestResponse({
-                description: "Bad request.",
-                type: BadRequestError,
-            }),
-        );
-    }
-
-    if (options.conflict) {
-        decorators.push(
-            ApiConflictResponse({
-                description: "Conflict.",
-                type: ConflictError,
-            }),
-        );
-    }
-
-    if (options.timeout) {
-        decorators.push(
-            ApiRequestTimeoutResponse({
-                description: "Request time out",
-                type: RequestTimeOutError,
-            }),
-        );
-    }
-
+export function ApiErrorResponse(errors: SupportedErrors[]) {
+    const decorators = errors.map((error) => errorsMap[error]);
     return applyDecorators(...decorators);
 }
