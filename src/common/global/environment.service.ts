@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { IDatabaseConfig, IMongoConfig } from "../../modules/extract/interfaces/extract.interface";
 
 @Injectable()
 export class EnvironmentService {
@@ -20,21 +21,21 @@ export class EnvironmentService {
         };
     }
 
-    get mongoCollectionNames() {
+    get mongoCollectionNames(): string[] {
         return this.configService.get("MONGO_COLLECTION_NAMES", { infer: true }) || [];
     }
 
-    get pgTableNames() {
+    get pgTableNames(): string[] {
         return this.configService.get("PG_TABLE_NAMES", { infer: true }) || [];
     }
 
-    get productionMongo() {
+    get productionMongo(): IMongoConfig {
         return {
             uri: this.configService.get("PROD_MONGO_URI", { infer: true })!,
         };
     }
 
-    get productionPostgres() {
+    get productionPostgres(): IDatabaseConfig {
         return {
             host: this.configService.get("PROD_PG_HOST", { infer: true })!,
             port: this.configService.get("PROD_PG_PORT", { infer: true })!,
@@ -44,13 +45,13 @@ export class EnvironmentService {
         };
     }
 
-    get qaMongo() {
+    get qaMongo(): IMongoConfig {
         return {
             uri: this.configService.get("QA_MONGO_URI", { infer: true })!,
         };
     }
 
-    get qaPostgres() {
+    get qaPostgres(): IDatabaseConfig {
         return {
             host: this.configService.get("QA_PG_HOST", { infer: true })!,
             port: this.configService.get("QA_PG_PORT", { infer: true })!,
