@@ -45,16 +45,6 @@ export class ETLPipelineService {
 }
 ```
 
-### Method 2: Using API Endpoints
-
-```bash
-# Step 1: Extract data
-curl -X POST http://localhost:3000/extract/run
-
-# Step 2: Transform data (after extraction completes)
-curl -X POST http://localhost:3000/transform/run
-```
-
 ## File Flow
 
 ### 1. Production Databases

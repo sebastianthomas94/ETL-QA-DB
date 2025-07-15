@@ -74,7 +74,7 @@ export class ExtractService {
         const pgHelper = new PostgresHelper();
 
         try {
-            const config = this.environmentService.qaPostgres;
+            const config = this.environmentService.productionPostgres;
 
             await pgHelper.connect(config);
 
