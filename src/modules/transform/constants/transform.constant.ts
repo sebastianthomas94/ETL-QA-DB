@@ -1,0 +1,86 @@
+export const TRANSFORM_PATHS = {
+    INPUT_MONGO: "output/extracted/mongo",
+    INPUT_POSTGRES: "output/extracted/pg",
+    OUTPUT_MONGO: "output/transformed/mongo",
+    OUTPUT_POSTGRES: "output/transformed/pg",
+} as const;
+
+export const FILE_EXTENSIONS = {
+    JSON: ".json",
+    CSV: ".csv",
+    TRANSFORMED_SUFFIX: ".transformed",
+} as const;
+
+export const BATCH_SIZE = {
+    JSON_STREAM: 1000,
+    CSV_STREAM: 5000,
+} as const;
+
+export const SENSITIVE_KEYS = {
+    MONGO: [
+        "name",
+        "firstName",
+        "lastName",
+        "fullName",
+        "email",
+        "phone",
+        "phoneNumber",
+        "mobile",
+        "address",
+        "streetAddress",
+        "city",
+        "state",
+        "zipCode",
+        "postalCode",
+        "ssn",
+        "socialSecurityNumber",
+        "bankAccount",
+        "creditCard",
+        "accountNumber",
+    ],
+    CSV: [
+        "name",
+        "firstName",
+        "lastName",
+        "fullName",
+        "accountName",
+        "accountIdentifier",
+        "email",
+        "phone",
+        "phoneNumber",
+        "mobile",
+        "contactNumber",
+        "address",
+        "streetAddress",
+        "city",
+        "state",
+        "zipCode",
+        "postalCode",
+        "ssn",
+        "socialSecurityNumber",
+        "bankAccount",
+        "creditCard",
+        "accountNumber",
+    ],
+} as const;
+
+export const PRESERVE_KEYS = [
+    "_id",
+    "id",
+    "transactionId",
+    "transactionid",
+    "userId",
+    "userid",
+    "customerId",
+    "customerid",
+    "orderId",
+    "orderid",
+    "createdAt",
+    "createdat",
+    "updatedAt",
+    "updatedat",
+    "timestamp",
+    "date",
+    "version",
+    "__v",
+] as const;
