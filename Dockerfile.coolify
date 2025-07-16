@@ -1,0 +1,69 @@
+# syntax=docker/dockerfile:1
+
+ARG NODE_VERSION=20.18.1
+ARG PNPM_VERSION=9.9.0
+
+FROM node:${NODE_VERSION}-alpine as base
+ARG SENTRY_AUTH_TOKEN
+
+ENV sentry_env=${SENTRY_AUTH_TOKEN}
+WORKDIR /usr/src/app
+
+# Install build tools
+RUN apk add --no-cache python3 make g++ \
+    freetype \
+    fontconfig \
+    ttf-dejavu
+
+# Install pnpm
+RUN npm install -g pnpm@${PNPM_VERSION}
+
+# Set Python path for node-gyp
+ENV PYTHON=/usr/bin/python3
+
+# Install Sentry CLI
+RUN npm install -g @sentry/cli
+
+
+FROM base as deps
+
+# Install dependencies
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# Rebuild Sentry profiling module for ARM64
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm rebuild @sentry/profiling-node
+
+FROM deps as build
+
+# Install development dependencies
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+COPY . .
+
+# RUN sentry-cli login --auth-token $sentry_env
+
+# Build the application
+RUN pnpm build
+
+FROM base as final
+
+ENV NODE_ENV=development
+
+USER node
+
+COPY package.json .
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
+
+EXPOSE 5002
+
+CMD pnpm start:prod
