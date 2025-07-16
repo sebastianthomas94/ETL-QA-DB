@@ -16,7 +16,8 @@ export async function getTransformedMongoFiles(dirPath: string): Promise<ILoadFi
                 source: "mongo" as const,
                 collectionOrTableName: extractCollectionName(file),
             }));
-    } catch {
+    } catch (error) {
+        console.error(`Failed to read directory ${dirPath}:`, error.message);
         return [];
     }
 }

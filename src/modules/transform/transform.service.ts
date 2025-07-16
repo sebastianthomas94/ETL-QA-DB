@@ -2,13 +2,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { MongoTransformer } from "./helpers/mongo-transformer.helper";
 import { CsvTransformer } from "./helpers/csv-transformer.helper";
 import { ITransformSummary, ITransformResult } from "./interfaces/transform.interface";
-import { TRANSFORM_PATHS } from "./constants/transform.constant";
+import { TRANSFORM_PATHS } from "@common/constant/file-path.constant";
 
 @Injectable()
 export class TransformService {
     private readonly logger = new Logger(TransformService.name);
-
-    constructor() {}
 
     async run(): Promise<ITransformSummary> {
         const startTime = new Date();

@@ -49,6 +49,10 @@ export class EnvironmentVariables {
     @IsString()
     PROD_PG_PASS: string;
 
+    @IsOptional()
+    @IsString()
+    PG_SSL_CA?: string;
+
     // QA MongoDB Configuration
     @IsString()
     @Matches(MONGO_PATTERN)
@@ -81,6 +85,11 @@ export function validate(config: Record<string, unknown>) {
     const errors = validateSync(validatedConfig, {
         skipMissingProperties: false,
     });
+
+    // Custom validation for PG_SSL_CA in production
+    if (config.NODE_ENV === "production" && !config.PG_SSL_CA) {
+        throw new Error("PG_SSL_CA is required when NODE_ENV is production");
+    }
 
     if (errors.length > 0) {
         throw new Error(errors.toString());

@@ -4,7 +4,7 @@ import { MongoLoader } from "./helpers/mongo-loader.helper";
 import { PostgresLoader } from "./helpers/postgres-loader.helper";
 import { ILoadSummary, ILoadResult } from "./interfaces/load.interface";
 import { getTransformedMongoFiles, getTransformedCsvFiles } from "./utils/file-processing.util";
-import { LOAD_PATHS } from "./constants/load.constant";
+import { TRANSFORM_PATHS } from "@common/constant/file-path.constant";
 
 @Injectable()
 export class LoadService {
@@ -58,7 +58,7 @@ export class LoadService {
             await mongoLoader.connect(config);
 
             // Get all transformed JSON files
-            const fileInfos = await getTransformedMongoFiles(LOAD_PATHS.INPUT_MONGO);
+            const fileInfos = await getTransformedMongoFiles(TRANSFORM_PATHS.INPUT_MONGO);
 
             if (fileInfos.length === 0) {
                 this.logger.warn("No transformed MongoDB files found to load");
@@ -86,7 +86,7 @@ export class LoadService {
             await pgLoader.connect(config);
 
             // Get all transformed CSV files
-            const fileInfos = await getTransformedCsvFiles(LOAD_PATHS.INPUT_POSTGRES);
+            const fileInfos = await getTransformedCsvFiles(TRANSFORM_PATHS.INPUT_POSTGRES);
 
             if (fileInfos.length === 0) {
                 this.logger.warn("No transformed PostgreSQL files found to load");
@@ -119,7 +119,7 @@ export class LoadService {
         const mongoLoader = new MongoLoader();
         try {
             await mongoLoader.connect(this.environmentService.qaMongo);
-            const mongoFiles = await getTransformedMongoFiles(LOAD_PATHS.INPUT_MONGO);
+            const mongoFiles = await getTransformedMongoFiles(TRANSFORM_PATHS.INPUT_MONGO);
 
             for (const fileInfo of mongoFiles) {
                 const collectionStats = await mongoLoader.getCollectionStats(fileInfo.collectionOrTableName);
@@ -135,7 +135,7 @@ export class LoadService {
         const pgLoader = new PostgresLoader();
         try {
             await pgLoader.connect(this.environmentService.qaPostgres);
-            const pgFiles = await getTransformedCsvFiles(LOAD_PATHS.INPUT_POSTGRES);
+            const pgFiles = await getTransformedCsvFiles(TRANSFORM_PATHS.INPUT_POSTGRES);
 
             for (const fileInfo of pgFiles) {
                 const tableStats = await pgLoader.getTableStats(fileInfo.collectionOrTableName);

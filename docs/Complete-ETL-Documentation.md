@@ -49,6 +49,9 @@ PROD_PG_DB=production
 PROD_PG_USER=prod-user
 PROD_PG_PASS=prod-pass
 
+# SSL Certificate (required in production)
+PG_SSL_CA=LS0tLS1CRUdJTi...base64-encoded-cert...0tLQo=
+
 # QA MongoDB
 QA_MONGO_URI=mongodb://qa-user:pass@qa-host:27017/qa
 
@@ -271,8 +274,25 @@ pnpm test
 ### Security
 
 -   **Credentials**: Store database credentials securely
+-   **SSL/TLS**: Use SSL certificates for production PostgreSQL connections
 -   **Network**: Ensure QA databases are accessible from ETL server
 -   **Monitoring**: Monitor ETL process for sensitive data leaks
+
+### SSL Configuration
+
+When `NODE_ENV=production`, the `PG_SSL_CA` environment variable is required and must contain a base64-encoded SSL certificate authority (CA) certificate. This ensures secure connections to production and QA PostgreSQL databases.
+
+To convert your CA certificate to base64:
+
+```bash
+# Linux/macOS
+base64 -i ca-certificate.crt
+
+# Windows PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("ca-certificate.crt"))
+```
+
+The decoded certificate will be used for both production and QA PostgreSQL connections when provided.
 
 ### Data Compliance
 

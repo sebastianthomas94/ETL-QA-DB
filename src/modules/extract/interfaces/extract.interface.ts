@@ -4,6 +4,9 @@ export interface IDatabaseConfig {
     database: string;
     username: string;
     password: string;
+    ssl?: {
+        ca?: string;
+    };
 }
 
 export interface IMongoConfig {

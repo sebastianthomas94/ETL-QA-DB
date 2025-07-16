@@ -1,10 +1,3 @@
-export const TRANSFORM_PATHS = {
-    INPUT_MONGO: "output/extracted/mongo",
-    INPUT_POSTGRES: "output/extracted/pg",
-    OUTPUT_MONGO: "output/transformed/mongo",
-    OUTPUT_POSTGRES: "output/transformed/pg",
-} as const;
-
 export const FILE_EXTENSIONS = {
     JSON: ".json",
     CSV: ".csv",

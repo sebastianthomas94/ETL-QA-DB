@@ -1,3 +1,4 @@
+import { EXTRACT_PATHS, TRANSFORM_PATHS } from "@common/constant/file-path.constant";
 import { ETLPipelineService } from "@modules/etl-pipeline/etl-pipeline.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -7,8 +8,8 @@ import { join, resolve } from "path";
 @Injectable()
 export class ETLCronService {
     private readonly logger = new Logger(ETLCronService.name);
-    private readonly extractedDir = resolve("output", "extracted");
-    private readonly transformedDir = resolve("output", "transformed");
+    private readonly extractedDir = resolve(EXTRACT_PATHS.ROOT);
+    private readonly transformedDir = resolve(TRANSFORM_PATHS.ROOT);
 
     constructor(private readonly etlPipelineService: ETLPipelineService) {}
 
