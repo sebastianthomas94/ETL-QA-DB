@@ -51,7 +51,11 @@ export class EnvironmentVariables {
 
     @IsOptional()
     @IsString()
-    PG_SSL_CA?: string;
+    PROD_PG_SSL_CA?: string;
+
+    @IsOptional()
+    @IsString()
+    QA_PG_SSL_CA?: string;
 
     // QA MongoDB Configuration
     @IsString()
