@@ -18,6 +18,7 @@ export class PostgresLoader {
                 database: config.database,
                 user: config.username,
                 password: config.password,
+                ssl: config.ssl || false,
             });
             await this.client.connect();
             this.logger.log("Connected to QA PostgreSQL");

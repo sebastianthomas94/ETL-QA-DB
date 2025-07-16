@@ -36,12 +36,18 @@ export class EnvironmentService {
     }
 
     get productionPostgres(): IDatabaseConfig {
+        const sslCa = this.configService.get<string>("PG_SSL_CA");
         return {
             host: this.configService.get("PROD_PG_HOST", { infer: true })!,
             port: this.configService.get("PROD_PG_PORT", { infer: true })!,
             database: this.configService.get("PROD_PG_DB", { infer: true })!,
             username: this.configService.get("PROD_PG_USER", { infer: true })!,
             password: this.configService.get("PROD_PG_PASS", { infer: true })!,
+            ssl: sslCa
+                ? {
+                      ca: Buffer.from(sslCa, "base64").toString("utf-8"),
+                  }
+                : undefined,
         };
     }
 
@@ -52,12 +58,18 @@ export class EnvironmentService {
     }
 
     get qaPostgres(): IDatabaseConfig {
+        const sslCa = this.configService.get<string>("PG_SSL_CA");
         return {
             host: this.configService.get("QA_PG_HOST", { infer: true })!,
             port: this.configService.get("QA_PG_PORT", { infer: true })!,
             database: this.configService.get("QA_PG_DB", { infer: true })!,
             username: this.configService.get("QA_PG_USER", { infer: true })!,
             password: this.configService.get("QA_PG_PASS", { infer: true })!,
+            ssl: sslCa
+                ? {
+                      ca: Buffer.from(sslCa, "base64").toString("utf-8"),
+                  }
+                : undefined,
         };
     }
 }

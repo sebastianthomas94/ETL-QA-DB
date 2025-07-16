@@ -19,6 +19,7 @@ export class PostgresHelper {
                 user: config.username,
                 password: config.password,
                 connectionTimeoutMillis: CONNECTION_TIMEOUTS.POSTGRES,
+                ssl: config.ssl || false,
             });
             await this.client.connect();
             this.logger.log("Connected to PostgreSQL");
