@@ -6,6 +6,6 @@ export const EXTRACT_PATHS = {
 
 export const TRANSFORM_PATHS = {
     ROOT: "output/transformed",
-    INPUT_MONGO: "output/transformed/mongo",
-    INPUT_POSTGRES: "output/transformed/pg",
+    MONGO: "output/transformed/mongo",
+    POSTGRES: "output/transformed/pg",
 } as const;
