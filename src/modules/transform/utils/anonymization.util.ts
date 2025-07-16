@@ -67,7 +67,7 @@ export function anonymizeData(data: unknown, sensitiveKeys: string[], preserveKe
 const FIELD_TYPE_MAPPING = {
     // Name fields
     names: {
-        patterns: ["name", "fullname", "accountName"],
+        patterns: ["name", "fullname", "accountname"],
         generator: () => faker.person.fullName(),
     },
     firstName: {
@@ -114,7 +114,7 @@ const FIELD_TYPE_MAPPING = {
             `${faker.number.int({ min: 100, max: 999 })}-${faker.number.int({ min: 10, max: 99 })}-${faker.number.int({ min: 1000, max: 9999 })}`,
     },
     bankAccount: {
-        patterns: ["bank", "account", "bankaccount", "accountnumber", "accountIdentifier"],
+        patterns: ["bank", "account", "bankaccount", "accountnumber", "accountidentifier"],
         generator: () => faker.finance.accountNumber(),
     },
     creditCard: {

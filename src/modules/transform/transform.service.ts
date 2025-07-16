@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { MongoTransformer } from "./helpers/mongo-transformer.helper";
 import { CsvTransformer } from "./helpers/csv-transformer.helper";
 import { ITransformSummary, ITransformResult } from "./interfaces/transform.interface";
-import { TRANSFORM_PATHS } from "@common/constant/file-path.constant";
+import { EXTRACT_PATHS } from "@common/constant/file-path.constant";
 
 @Injectable()
 export class TransformService {
@@ -50,7 +50,7 @@ export class TransformService {
         const mongoTransformer = new MongoTransformer();
 
         try {
-            const results = await mongoTransformer.transformAllJsonFiles(TRANSFORM_PATHS.INPUT_MONGO);
+            const results = await mongoTransformer.transformAllJsonFiles(EXTRACT_PATHS.MONGO);
             this.logger.log(`MongoDB transformation completed: ${results.length} files processed`);
             return results;
         } catch (error) {
@@ -63,7 +63,7 @@ export class TransformService {
         const csvTransformer = new CsvTransformer();
 
         try {
-            const results = await csvTransformer.transformAllCsvFiles(TRANSFORM_PATHS.INPUT_POSTGRES);
+            const results = await csvTransformer.transformAllCsvFiles(EXTRACT_PATHS.POSTGRES);
             this.logger.log(`CSV transformation completed: ${results.length} files processed`);
             return results;
         } catch (error) {
