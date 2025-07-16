@@ -12,15 +12,7 @@ export class ETLPipelineService {
         private readonly extractService: ExtractService,
         private readonly transformService: TransformService,
         private readonly loadService: LoadService,
-    ) {
-        this.runFullPipeline()
-            .then((result) => {
-                this.logger.log(`ETL Pipeline Result: ${JSON.stringify(result)}`);
-            })
-            .catch((error) => {
-                this.logger.error("ETL Pipeline failed", error);
-            });
-    }
+    ) {}
 
     async runFullPipeline(): Promise<IETLPipelineResult> {
         const pipelineStartTime = new Date();
