@@ -6,12 +6,17 @@ import { ITransformResult } from "../interfaces/transform.interface";
 import { anonymizeData } from "../utils/anonymization.util";
 import { ensureDirectoryExists, generateTransformedFilename } from "../utils/file-processing.util";
 import { SENSITIVE_KEYS, PRESERVE_KEYS } from "../constants/transform.constant";
-import path from "path";
 
 export class MongoTransformer {
     private readonly logger = new Logger(MongoTransformer.name);
 
     async transformJsonFile(inputPath: string): Promise<ITransformResult> {
+        // Validate the JSON file before processing
+        const isValid = await this.validateJsonFile(inputPath);
+        if (!isValid) {
+            throw new Error(`Invalid JSON file: ${inputPath}`);
+        }
+
         const outputPath = generateTransformedFilename(inputPath);
 
         return new Promise((resolve, reject) => {
@@ -31,10 +36,24 @@ export class MongoTransformer {
 
     private async processJsonStream(inputPath: string, outputPath: string): Promise<number> {
         // Ensure output directory exists
-        await ensureDirectoryExists(path.dirname(outputPath));
+        await ensureDirectoryExists(outputPath.substring(0, outputPath.lastIndexOf("/")));
+
+        // First, validate the file exists and is not empty
+        try {
+            const stats = await fs.promises.stat(inputPath);
+            if (stats.size === 0) {
+                this.logger.warn(`Skipping empty file: ${inputPath}`);
+                return 0;
+            }
+        } catch (error) {
+            this.logger.error(`Cannot access file: ${inputPath}`, error);
+            throw new Error(`File not accessible: ${inputPath}`);
+        }
 
         return new Promise((resolve, reject) => {
-            const jsonStream = fs.createReadStream(inputPath).pipe(parser()).pipe(streamArray());
+            const readStream = fs.createReadStream(inputPath, { encoding: "utf8" });
+            const jsonParser = parser();
+            const jsonStream = readStream.pipe(jsonParser).pipe(streamArray());
 
             const outputStream = fs.createWriteStream(outputPath);
             outputStream.write("[\n");
@@ -67,8 +86,21 @@ export class MongoTransformer {
             });
 
             jsonStream.on("error", (err: Error) => {
-                this.logger.error("❌ JSON stream error:", err);
-                reject(err);
+                this.logger.error(`❌ JSON stream error in file ${inputPath}:`, err);
+                outputStream.destroy();
+                reject(new Error(`Failed to parse JSON in ${inputPath}: ${err.message}`));
+            });
+
+            readStream.on("error", (err: Error) => {
+                this.logger.error(`❌ Read stream error for file ${inputPath}:`, err);
+                outputStream.destroy();
+                reject(new Error(`Failed to read file ${inputPath}: ${err.message}`));
+            });
+
+            jsonParser.on("error", (err: Error) => {
+                this.logger.error(`❌ JSON parser error in file ${inputPath}:`, err);
+                outputStream.destroy();
+                reject(new Error(`JSON parsing error in ${inputPath}: ${err.message}`));
             });
 
             outputStream.on("error", (err: Error) => {
@@ -100,6 +132,40 @@ export class MongoTransformer {
             return files.filter((file) => file.endsWith(".json")).map((file) => `${dirPath}/${file}`);
         } catch {
             return [];
+        }
+    }
+
+    private async validateJsonFile(filePath: string): Promise<boolean> {
+        try {
+            const content = await fs.promises.readFile(filePath, "utf8");
+
+            // Check if file is empty
+            if (!content.trim()) {
+                this.logger.warn(`Empty file detected: ${filePath}`);
+                return false;
+            }
+
+            // Try to parse a small portion to validate JSON structure
+            const trimmedContent = content.trim();
+            if (!trimmedContent.startsWith("[") && !trimmedContent.startsWith("{")) {
+                this.logger.warn(`Invalid JSON format (doesn't start with [ or {): ${filePath}`);
+                return false;
+            }
+
+            // For very large files, just check the first few characters
+            if (content.length > 1000000) {
+                // 1MB
+                const sample = content.substring(0, 1000);
+                JSON.parse(sample.endsWith(",") ? sample.slice(0, -1) + "]" : sample + "]");
+            } else {
+                // For smaller files, validate the entire content
+                JSON.parse(content);
+            }
+
+            return true;
+        } catch (error) {
+            this.logger.error(`JSON validation failed for ${filePath}:`, error);
+            return false;
         }
     }
 }
