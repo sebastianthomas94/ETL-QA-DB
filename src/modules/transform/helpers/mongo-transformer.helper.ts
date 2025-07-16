@@ -6,6 +6,7 @@ import { ITransformResult } from "../interfaces/transform.interface";
 import { anonymizeData } from "../utils/anonymization.util";
 import { ensureDirectoryExists, generateTransformedFilename } from "../utils/file-processing.util";
 import { SENSITIVE_KEYS, PRESERVE_KEYS } from "../constants/transform.constant";
+import path from "path";
 
 export class MongoTransformer {
     private readonly logger = new Logger(MongoTransformer.name);
@@ -30,7 +31,7 @@ export class MongoTransformer {
 
     private async processJsonStream(inputPath: string, outputPath: string): Promise<number> {
         // Ensure output directory exists
-        await ensureDirectoryExists(outputPath.substring(0, outputPath.lastIndexOf("/")));
+        await ensureDirectoryExists(path.dirname(outputPath));
 
         return new Promise((resolve, reject) => {
             const jsonStream = fs.createReadStream(inputPath).pipe(parser()).pipe(streamArray());

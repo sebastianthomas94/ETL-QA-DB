@@ -4,36 +4,16 @@ import { faker } from "@faker-js/faker";
  * Generate fake data based on the field key
  */
 export function generateFakeValue(key: string): string {
-    const lowerKey = key.toLowerCase();
+    const lowerKey = key.toLowerCase().replace(/[_\s-]/g, ""); // Normalize key by removing separators
 
-    switch (true) {
-        case lowerKey.includes("name") || lowerKey.includes("fullname"):
-            return faker.person.fullName();
-        case lowerKey.includes("firstname"):
-            return faker.person.firstName();
-        case lowerKey.includes("lastname"):
-            return faker.person.lastName();
-        case lowerKey.includes("email"):
-            return faker.internet.email();
-        case lowerKey.includes("phone") || lowerKey.includes("mobile") || lowerKey.includes("contact"):
-            return faker.phone.number();
-        case lowerKey.includes("address") || lowerKey.includes("street"):
-            return faker.location.streetAddress();
-        case lowerKey.includes("city"):
-            return faker.location.city();
-        case lowerKey.includes("state"):
-            return faker.location.state();
-        case lowerKey.includes("zip") || lowerKey.includes("postal"):
-            return faker.location.zipCode();
-        case lowerKey.includes("ssn") || lowerKey.includes("social"):
-            return `${faker.number.int({ min: 100, max: 999 })}-${faker.number.int({ min: 10, max: 99 })}-${faker.number.int({ min: 1000, max: 9999 })}`;
-        case lowerKey.includes("bank") || lowerKey.includes("account"):
-            return faker.finance.accountNumber();
-        case lowerKey.includes("credit"):
-            return faker.finance.creditCardNumber();
-        default:
-            return "REDACTED";
+    // Find matching field type based on patterns
+    for (const fieldType of Object.values(FIELD_TYPE_MAPPING)) {
+        if (fieldType.patterns.some((pattern) => lowerKey.includes(pattern))) {
+            return fieldType.generator();
+        }
     }
+
+    return "REDACTED";
 }
 
 /**
@@ -83,3 +63,62 @@ export function anonymizeData(data: unknown, sensitiveKeys: string[], preserveKe
 
     return data;
 }
+
+const FIELD_TYPE_MAPPING = {
+    // Name fields
+    names: {
+        patterns: ["name", "fullname", "accountName"],
+        generator: () => faker.person.fullName(),
+    },
+    firstName: {
+        patterns: ["firstname"],
+        generator: () => faker.person.firstName(),
+    },
+    lastName: {
+        patterns: ["lastname"],
+        generator: () => faker.person.lastName(),
+    },
+
+    // Contact fields
+    email: {
+        patterns: ["email"],
+        generator: () => faker.internet.email(),
+    },
+    phone: {
+        patterns: ["phone", "phoneNumber", "mobile", "contact", "contactNumber"],
+        generator: () => faker.phone.number(),
+    },
+
+    // Address fields
+    address: {
+        patterns: ["address", "street"],
+        generator: () => faker.location.streetAddress(),
+    },
+    city: {
+        patterns: ["city"],
+        generator: () => faker.location.city(),
+    },
+    state: {
+        patterns: ["state"],
+        generator: () => faker.location.state(),
+    },
+    zipCode: {
+        patterns: ["zip", "postal", "zipcode", "postalcode"],
+        generator: () => faker.location.zipCode(),
+    },
+
+    // Financial/Identity fields
+    ssn: {
+        patterns: ["ssn", "social", "socialsecuritynumber"],
+        generator: () =>
+            `${faker.number.int({ min: 100, max: 999 })}-${faker.number.int({ min: 10, max: 99 })}-${faker.number.int({ min: 1000, max: 9999 })}`,
+    },
+    bankAccount: {
+        patterns: ["bank", "account", "bankaccount", "accountnumber", "accountIdentifier"],
+        generator: () => faker.finance.accountNumber(),
+    },
+    creditCard: {
+        patterns: ["credit", "creditcard"],
+        generator: () => faker.finance.creditCardNumber(),
+    },
+};
