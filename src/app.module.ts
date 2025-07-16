@@ -7,6 +7,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { GlobalModule } from "@common/global/global.module";
 import { EnvironmentService } from "@common/global/environment.service";
 import { throttlerConfig } from "@common/config/throttler.config";
+import { JobsModule } from "./jobs/jobs.module";
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { throttlerConfig } from "@common/config/throttler.config";
             inject: [EnvironmentService],
         }),
         RouteModule,
+        JobsModule,
     ],
     providers: [
         {
