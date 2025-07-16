@@ -36,7 +36,7 @@ export class EnvironmentService {
     }
 
     get productionPostgres(): IDatabaseConfig {
-        const sslCa = this.configService.get<string>("PROD_PG_SSL_CA");
+        const sslCa = this.isProduction ? this.configService.get<string>("PROD_PG_SSL_CA") : undefined;
         return {
             host: this.configService.get("PROD_PG_HOST", { infer: true })!,
             port: this.configService.get("PROD_PG_PORT", { infer: true })!,
@@ -58,7 +58,7 @@ export class EnvironmentService {
     }
 
     get qaPostgres(): IDatabaseConfig {
-        const sslCa = this.configService.get<string>("QA_PG_SSL_CA");
+        const sslCa = this.isProduction ? this.configService.get<string>("QA_PG_SSL_CA") : undefined;
         return {
             host: this.configService.get("QA_PG_HOST", { infer: true })!,
             port: this.configService.get("QA_PG_PORT", { infer: true })!,
