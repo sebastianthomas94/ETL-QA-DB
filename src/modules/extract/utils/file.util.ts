@@ -46,8 +46,8 @@ export function arrayToCsv(data: Record<string, unknown>[]): string {
 /**
  * Write data to file with proper error handling
  */
-export async function writeDataToFile(filePath: string, data: string): Promise<void> {
+export async function appendDataToFile(filePath: string, data: string): Promise<void> {
     const dir = path.dirname(filePath);
     await ensureDirectoryExists(dir);
-    await fs.writeFile(filePath, data, "utf8");
+    await fs.appendFile(filePath, data, "utf8");
 }

@@ -1,8 +1,10 @@
 import { MongoClient, Db, Collection } from "mongodb";
 import { IMongoConfig, IExtractResult } from "../interfaces/extract.interface";
-import { CONNECTION_TIMEOUTS, EXTRACT_PATHS, FILE_EXTENSIONS } from "../constants/extract.constant";
-import { generateTimestampedFilename, writeDataToFile } from "../utils/file.util";
+import { generateTimestampedFilename, appendDataToFile } from "../utils/file.util";
 import { Logger } from "@nestjs/common";
+import { EXTRACT_PATHS } from "@common/constant/file-path.constant";
+import { CONNECTION_TIMEOUTS, FILE_EXTENSIONS } from "@common/constant/common.constant";
+import { BATCH_SIZE } from "../constants/extract.constant";
 
 export class MongoHelper {
     private readonly logger = new Logger(MongoHelper.name);
@@ -48,8 +50,10 @@ export class MongoHelper {
         const filename = generateTimestampedFilename(collectionName, FILE_EXTENSIONS.JSON);
         const filePath = `${EXTRACT_PATHS.MONGO}/${filename}`;
 
-        const jsonData = JSON.stringify(documents, null, 2);
-        await writeDataToFile(filePath, jsonData);
+        for (let i = 0; i < documents.length; i += BATCH_SIZE.MONGO) {
+            const batch = documents.slice(i, i + BATCH_SIZE.MONGO);
+            await appendDataToFile(filePath, JSON.stringify(batch, null, 2));
+        }
 
         return {
             source: "mongo",

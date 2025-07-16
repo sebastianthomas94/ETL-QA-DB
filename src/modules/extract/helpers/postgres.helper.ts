@@ -1,8 +1,10 @@
 import { Client } from "pg";
 import { IDatabaseConfig, IExtractResult } from "../interfaces/extract.interface";
-import { CONNECTION_TIMEOUTS, EXTRACT_PATHS, FILE_EXTENSIONS } from "../constants/extract.constant";
-import { generateTimestampedFilename, writeDataToFile, arrayToCsv } from "../utils/file.util";
+import { generateTimestampedFilename, appendDataToFile, arrayToCsv } from "../utils/file.util";
 import { Logger } from "@nestjs/common";
+import { EXTRACT_PATHS } from "@common/constant/file-path.constant";
+import { CONNECTION_TIMEOUTS, FILE_EXTENSIONS } from "@common/constant/common.constant";
+import { BATCH_SIZE } from "../constants/extract.constant";
 
 export class PostgresHelper {
     private readonly logger = new Logger(PostgresHelper.name);
@@ -58,7 +60,10 @@ export class PostgresHelper {
         const filePath = `${EXTRACT_PATHS.POSTGRES}/${filename}`;
 
         const csvData = arrayToCsv(result.rows);
-        await writeDataToFile(filePath, csvData);
+        for (let i = 0; i < result.rows.length; i += BATCH_SIZE.POSTGRES) {
+            const batch = csvData.slice(i, i + BATCH_SIZE.POSTGRES);
+            await appendDataToFile(filePath, batch);
+        }
 
         return {
             source: "postgres",
