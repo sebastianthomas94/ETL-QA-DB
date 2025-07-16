@@ -1,17 +1,22 @@
 import { EXTRACT_PATHS, TRANSFORM_PATHS } from "@common/constant/file-path.constant";
 import { ETLPipelineService } from "@modules/etl-pipeline/etl-pipeline.service";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { promises as fs } from "fs";
 import { join, resolve } from "path";
 
 @Injectable()
-export class ETLCronService {
+export class ETLCronService implements OnApplicationBootstrap {
     private readonly logger = new Logger(ETLCronService.name);
     private readonly extractedDir = resolve(EXTRACT_PATHS.ROOT);
     private readonly transformedDir = resolve(TRANSFORM_PATHS.ROOT);
 
     constructor(private readonly etlPipelineService: ETLPipelineService) {}
+
+    async onApplicationBootstrap() {
+        this.logger.log("ETLCronService has been initialized");
+        await this.handleCron();
+    }
 
     @Cron(CronExpression.EVERY_DAY_AT_2AM)
     async handleCron() {
