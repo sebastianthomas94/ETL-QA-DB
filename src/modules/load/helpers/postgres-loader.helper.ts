@@ -42,52 +42,12 @@ export class PostgresLoader {
         const { filePath, collectionOrTableName } = fileInfo;
 
         try {
-            // Read CSV data
-            const records = await this.readCsvFile(filePath);
+            // Use streaming approach to avoid loading entire file into memory
+            const result = await this.streamCsvFile(filePath, collectionOrTableName);
 
-            if (records.length === 0) {
-                this.logger.warn(`No records found in ${filePath}`);
-                return {
-                    source: "postgres",
-                    tableName: collectionOrTableName,
-                    recordCount: 0,
-                    operation: "upsert",
-                    timestamp: new Date(),
-                };
-            }
+            this.logger.log(`✅ Successfully processed ${result.recordCount} records for ${collectionOrTableName}`);
 
-            // Create table structure based on first record
-            await this.createTableFromData(collectionOrTableName, records[0]);
-
-            // Upsert records in batches (update if id exists, insert if new)
-            const totalRecords = records.length;
-            let upsertedCount = 0;
-            let insertedCount = 0;
-            let modifiedCount = 0;
-
-            for (let i = 0; i < totalRecords; i += BATCH_SIZE.POSTGRES_INSERT) {
-                const batch = records.slice(i, i + BATCH_SIZE.POSTGRES_INSERT);
-                const batchResult = await this.upsertBatch(collectionOrTableName, batch);
-                upsertedCount += batch.length;
-                insertedCount += batchResult.inserted;
-                modifiedCount += batchResult.updated;
-
-                if (upsertedCount % (BATCH_SIZE.POSTGRES_INSERT * 2) === 0) {
-                    this.logger.log(`Processed ${upsertedCount}/${totalRecords} records for ${collectionOrTableName}`);
-                }
-            }
-
-            this.logger.log(
-                `✅ Successfully processed ${upsertedCount} records for ${collectionOrTableName} (${insertedCount} new, ${modifiedCount} updated)`,
-            );
-
-            return {
-                source: "postgres",
-                tableName: collectionOrTableName,
-                recordCount: upsertedCount,
-                operation: "upsert",
-                timestamp: new Date(),
-            };
+            return result;
         } catch (error) {
             this.logger.error(`Failed to load ${filePath} into ${collectionOrTableName}`, error);
             throw error;
@@ -326,5 +286,76 @@ export class PostgresLoader {
             this.logger.warn(`Could not check unique constraint for ${tableName}.${columnName}`, error);
             return false;
         }
+    }
+
+    private async streamCsvFile(filePath: string, tableName: string): Promise<ILoadResult> {
+        return new Promise((resolve, reject) => {
+            const batch: Record<string, unknown>[] = [];
+            let recordCount = 0;
+            let isTableCreated = false;
+
+            const processAndClearBatch = async () => {
+                if (batch.length === 0) return;
+
+                try {
+                    await this.upsertBatch(tableName, [...batch]);
+                    batch.length = 0; // Clear batch to free memory
+
+                    // Force garbage collection hint
+                    if (global.gc) {
+                        global.gc();
+                    }
+                } catch (error) {
+                    throw error;
+                }
+            };
+
+            fs.createReadStream(filePath)
+                .pipe(csvParser())
+                .on("data", async (row: Record<string, unknown>) => {
+                    try {
+                        // Create table on first record
+                        if (!isTableCreated) {
+                            await this.createTableFromData(tableName, row);
+                            isTableCreated = true;
+                        }
+
+                        batch.push(row);
+                        recordCount++;
+
+                        // Process batch when it reaches the limit
+                        if (batch.length >= BATCH_SIZE.POSTGRES_INSERT) {
+                            await processAndClearBatch();
+
+                            if (recordCount % (BATCH_SIZE.POSTGRES_INSERT * 2) === 0) {
+                                this.logger.log(`Processed ${recordCount} records for ${tableName}`);
+                            }
+                        }
+                    } catch (error) {
+                        reject(error);
+                    }
+                })
+                .on("end", async () => {
+                    try {
+                        // Process remaining records in final batch
+                        if (batch.length > 0) {
+                            await processAndClearBatch();
+                        }
+
+                        resolve({
+                            source: "postgres",
+                            tableName,
+                            recordCount,
+                            operation: "upsert",
+                            timestamp: new Date(),
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                })
+                .on("error", (error: Error) => {
+                    reject(error);
+                });
+        });
     }
 }

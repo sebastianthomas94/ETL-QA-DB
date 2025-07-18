@@ -8,6 +8,7 @@ import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { AllExceptionsFilter } from "@common/filter/all-exceptions.filter";
 import helmet from "helmet";
 import { Logger } from "nestjs-pino";
+import { MemoryMonitor } from "./common/utils/memory-monitor.util";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -38,6 +39,12 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup("docs", app, document);
+
+    // Start memory monitoring in development
+    if (!envService.isProduction) {
+        MemoryMonitor.startMonitoring(30000); // Monitor every 30 seconds
+    }
+
     await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();
