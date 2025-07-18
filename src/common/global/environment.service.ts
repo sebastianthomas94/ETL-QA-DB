@@ -1,3 +1,4 @@
+import { IDatabaseConfig } from "@common/interfaces/db.interface";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -34,13 +35,19 @@ export class EnvironmentService {
         };
     }
 
-    get productionPostgres() {
+    get productionPostgres(): IDatabaseConfig {
+        const sslCa = this.isProduction ? this.configService.get<string>("PROD_PG_SSL_CA") : undefined;
         return {
             host: this.configService.get("PROD_PG_HOST", { infer: true })!,
             port: this.configService.get("PROD_PG_PORT", { infer: true })!,
             database: this.configService.get("PROD_PG_DB", { infer: true })!,
             username: this.configService.get("PROD_PG_USER", { infer: true })!,
             password: this.configService.get("PROD_PG_PASS", { infer: true })!,
+            ssl: sslCa
+                ? {
+                      ca: Buffer.from(sslCa, "base64").toString("utf-8"),
+                  }
+                : undefined,
         };
     }
 
@@ -50,13 +57,19 @@ export class EnvironmentService {
         };
     }
 
-    get qaPostgres() {
+    get qaPostgres(): IDatabaseConfig {
+        const sslCa = this.isProduction ? this.configService.get<string>("QA_PG_SSL_CA") : undefined;
         return {
             host: this.configService.get("QA_PG_HOST", { infer: true })!,
             port: this.configService.get("QA_PG_PORT", { infer: true })!,
             database: this.configService.get("QA_PG_DB", { infer: true })!,
             username: this.configService.get("QA_PG_USER", { infer: true })!,
             password: this.configService.get("QA_PG_PASS", { infer: true })!,
+            ssl: sslCa
+                ? {
+                      ca: Buffer.from(sslCa, "base64").toString("utf-8"),
+                  }
+                : undefined,
         };
     }
 }
