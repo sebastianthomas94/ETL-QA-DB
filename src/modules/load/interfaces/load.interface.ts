@@ -3,7 +3,7 @@ export interface ILoadResult {
     collectionName?: string;
     tableName?: string;
     recordCount: number;
-    operation: "insert" | "replace";
+    operation: "insert" | "replace" | "upsert";
     timestamp: Date;
 }
 
