@@ -91,7 +91,7 @@ export function validate(config: Record<string, unknown>) {
     });
 
     // Custom validation for PG_SSL_CA in production
-    if (config.NODE_ENV === "production" && !config.PG_SSL_CA) {
+    if (config.NODE_ENV === "production" && !config.PROD_PG_SSL_CA && !config.QA_PG_SSL_CA) {
         throw new Error("PG_SSL_CA is required when NODE_ENV is production");
     }
 
