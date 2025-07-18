@@ -132,6 +132,9 @@ export class PostgresLoader {
                 return;
             }
 
+            // Check if 'id' column exists in the data
+            const hasIdColumn = Object.keys(sampleRecord).some((key) => key.toLowerCase() === "id");
+
             // Create columns based on sample data
             const columns = Object.keys(sampleRecord).map((key) => {
                 const value = sampleRecord[key];
@@ -146,23 +149,22 @@ export class PostgresLoader {
                     dataType = "TIMESTAMP";
                 }
 
+                // If this is the id column, make it a primary key
+                if (key.toLowerCase() === "id") {
+                    return `"${key}" ${dataType} PRIMARY KEY`;
+                }
+
                 return `"${key}" ${dataType}`;
             });
 
-            // Add a primary key if 'id' column exists, otherwise create one
-            const hasIdColumn = Object.keys(sampleRecord).some((key) => key.toLowerCase() === "id");
-            let primaryKeyClause = "";
-
-            if (hasIdColumn) {
-                primaryKeyClause = ', PRIMARY KEY ("id")';
-            } else {
-                // Add an auto-incrementing id column as primary key
+            // If no id column exists, add a serial primary key
+            if (!hasIdColumn) {
                 columns.unshift('"id" SERIAL PRIMARY KEY');
             }
 
             const createTableQuery = `
                 CREATE TABLE "${tableName}" (
-                    ${columns.join(",\n                    ")}${primaryKeyClause}
+                    ${columns.join(",\n                ")}
                 )
             `;
 
@@ -200,25 +202,32 @@ export class PostgresLoader {
             valuePlaceholders.push(`(${recordPlaceholders.join(", ")})`);
         });
 
-        // Check if table has an 'id' column for conflict resolution
+        // Check if table has an 'id' column and if it has a unique constraint
         const hasIdColumn = columns.some((col) => col.toLowerCase() === "id");
-        const conflictColumn = '"id"'; // Always use id as conflict column since we ensure it exists
+
+        // Check if the id column has a unique constraint
+        const hasUniqueConstraint = await this.checkUniqueConstraint(tableName, "id");
 
         let query: string;
-        if (updateColumns && hasIdColumn) {
+        if (hasIdColumn && hasUniqueConstraint && updateColumns) {
             query = `
-            INSERT INTO "${tableName}" (${columnNames})
-            VALUES ${valuePlaceholders.join(", ")}
-            ON CONFLICT (${conflictColumn}) DO UPDATE SET
-            ${updateColumns}
-        `;
+                INSERT INTO "${tableName}" (${columnNames})
+                VALUES ${valuePlaceholders.join(", ")}
+                ON CONFLICT ("id") DO UPDATE SET
+                ${updateColumns}
+            `;
+        } else if (hasIdColumn && hasUniqueConstraint) {
+            query = `
+                INSERT INTO "${tableName}" (${columnNames})
+                VALUES ${valuePlaceholders.join(", ")}
+                ON CONFLICT ("id") DO NOTHING
+            `;
         } else {
-            // If no updateable columns (only id), use DO NOTHING
+            // If no unique constraint on id, use simple INSERT
             query = `
-            INSERT INTO "${tableName}" (${columnNames})
-            VALUES ${valuePlaceholders.join(", ")}
-            ON CONFLICT (${conflictColumn}) DO NOTHING
-        `;
+                INSERT INTO "${tableName}" (${columnNames})
+                VALUES ${valuePlaceholders.join(", ")}
+            `;
         }
 
         await this.client.query(query, values);
@@ -293,6 +302,29 @@ export class PostgresLoader {
         } catch (error) {
             this.logger.warn(`Could not get stats for table ${tableName}`, error);
             return { count: 0, size: "0 bytes" };
+        }
+    }
+
+    private async checkUniqueConstraint(tableName: string, columnName: string): Promise<boolean> {
+        if (!this.client) return false;
+
+        try {
+            const result = await this.client.query(
+                `
+                SELECT COUNT(*) as count
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
+                WHERE tc.table_name = $1 
+                AND ccu.column_name = $2 
+                AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
+            `,
+                [tableName, columnName],
+            );
+
+            return parseInt(result.rows[0].count) > 0;
+        } catch (error) {
+            this.logger.warn(`Could not check unique constraint for ${tableName}.${columnName}`, error);
+            return false;
         }
     }
 }
