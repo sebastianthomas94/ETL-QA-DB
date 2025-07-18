@@ -1,4 +1,5 @@
 import { IDatabaseConfig } from "@common/interfaces/db.interface";
+import { IMongoConfig } from "@modules/extract/interfaces/mongo.interface";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -29,9 +30,9 @@ export class EnvironmentService {
         return this.configService.get("PG_TABLE_NAMES", { infer: true }) || [];
     }
 
-    get productionMongo() {
+    get productionMongo(): IMongoConfig {
         return {
-            uri: this.configService.get("PROD_MONGO_URI", { infer: true })!,
+            uri: this.configService.get<string>("PROD_MONGO_URI")!,
         };
     }
 
@@ -51,9 +52,9 @@ export class EnvironmentService {
         };
     }
 
-    get qaMongo() {
+    get qaMongo(): IMongoConfig {
         return {
-            uri: this.configService.get("QA_MONGO_URI", { infer: true })!,
+            uri: this.configService.get<string>("QA_MONGO_URI")!,
         };
     }
 
