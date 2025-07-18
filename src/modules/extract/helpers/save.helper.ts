@@ -68,80 +68,97 @@ export class SaveHelper {
 
     private async writeJsonStreamToFile(filePath: string, data: Record<string, unknown>): Promise<void> {
         const writeStream = createWriteStream(filePath, { encoding: "utf8" });
-
-        // Increase max listeners to prevent memory leak warnings for large datasets
         writeStream.setMaxListeners(0); // 0 means unlimited
 
         try {
-            // Extract data array and metadata
             const { data: arrayData, ...metadata } = data;
             const dataArray = Array.isArray(arrayData) ? arrayData : [];
 
-            // Build the JSON content in chunks to reduce individual write operations
-            let jsonContent = "{\n";
-
-            // Add metadata fields
-            const metadataEntries = Object.entries(metadata);
-            for (let i = 0; i < metadataEntries.length; i++) {
-                const [key, value] = metadataEntries[i];
-                const jsonValue = JSON.stringify(value);
-                jsonContent += `  "${key}": ${jsonValue}`;
-                if (i < metadataEntries.length - 1 || dataArray.length > 0) {
-                    jsonContent += ",";
-                }
-                jsonContent += "\n";
-            }
-
-            // Write metadata in one go
-            await this.writeToStream(writeStream, jsonContent);
-
-            // Write the data array header
-            if (dataArray.length > 0) {
-                await this.writeToStream(writeStream, '  "data": [\n');
-
-                // Process data in batches to reduce memory usage and write operations
-                const batchSize = 50; // Write 50 records at a time
-                for (let batchStart = 0; batchStart < dataArray.length; batchStart += batchSize) {
-                    const batchEnd = Math.min(batchStart + batchSize, dataArray.length);
-                    const batch = dataArray.slice(batchStart, batchEnd);
-
-                    let batchContent = "";
-                    for (let i = 0; i < batch.length; i++) {
-                        const globalIndex = batchStart + i;
-                        const item = batch[i];
-                        const jsonItem = JSON.stringify(item, null, 4);
-                        // Indent the JSON item
-                        const indentedItem = jsonItem
-                            .split("\n")
-                            .map((line) => "    " + line)
-                            .join("\n");
-                        batchContent += indentedItem;
-
-                        if (globalIndex < dataArray.length - 1) {
-                            batchContent += ",";
-                        }
-                        batchContent += "\n";
-                    }
-
-                    // Write the batch
-                    await this.writeToStream(writeStream, batchContent);
-
-                    // Log progress for large datasets
-                    if (dataArray.length > 1000 && batchEnd % 1000 === 0) {
-                        console.log(`Wrote ${batchEnd}/${dataArray.length} records to ${filePath}`);
-                    }
-                }
-
-                await this.writeToStream(writeStream, "  ]\n");
-            }
-
-            // Close the JSON object
+            await this.writeMetadata(writeStream, metadata, dataArray.length > 0);
+            await this.writeDataArray(writeStream, dataArray, filePath);
             await this.writeToStream(writeStream, "}\n");
         } catch (error) {
             console.error(`Error writing to file ${filePath}:`, error);
             throw error;
         } finally {
             await this.closeStream(writeStream);
+        }
+    }
+
+    private async writeMetadata(
+        stream: NodeJS.WritableStream,
+        metadata: Record<string, unknown>,
+        hasData: boolean,
+    ): Promise<void> {
+        let jsonContent = "{\n";
+        const metadataEntries = Object.entries(metadata);
+
+        for (let i = 0; i < metadataEntries.length; i++) {
+            const [key, value] = metadataEntries[i];
+            const jsonValue = JSON.stringify(value);
+            jsonContent += `  "${key}": ${jsonValue}`;
+
+            if (i < metadataEntries.length - 1 || hasData) {
+                jsonContent += ",";
+            }
+            jsonContent += "\n";
+        }
+
+        await this.writeToStream(stream, jsonContent);
+    }
+
+    private async writeDataArray(stream: NodeJS.WritableStream, dataArray: unknown[], filePath: string): Promise<void> {
+        if (dataArray.length === 0) return;
+
+        await this.writeToStream(stream, '  "data": [\n');
+        await this.writeDataInBatches(stream, dataArray, filePath);
+        await this.writeToStream(stream, "  ]\n");
+    }
+
+    private async writeDataInBatches(
+        stream: NodeJS.WritableStream,
+        dataArray: unknown[],
+        filePath: string,
+    ): Promise<void> {
+        const batchSize = 50;
+
+        for (let batchStart = 0; batchStart < dataArray.length; batchStart += batchSize) {
+            const batchEnd = Math.min(batchStart + batchSize, dataArray.length);
+            const batch = dataArray.slice(batchStart, batchEnd);
+
+            const batchContent = this.buildBatchContent(batch, batchStart, dataArray.length);
+            await this.writeToStream(stream, batchContent);
+
+            this.logProgressIfNeeded(dataArray.length, batchEnd, filePath);
+        }
+    }
+
+    private buildBatchContent(batch: unknown[], batchStart: number, totalLength: number): string {
+        let batchContent = "";
+
+        for (let i = 0; i < batch.length; i++) {
+            const globalIndex = batchStart + i;
+            const item = batch[i];
+            const jsonItem = JSON.stringify(item, null, 4);
+            const indentedItem = jsonItem
+                .split("\n")
+                .map((line) => "    " + line)
+                .join("\n");
+
+            batchContent += indentedItem;
+
+            if (globalIndex < totalLength - 1) {
+                batchContent += ",";
+            }
+            batchContent += "\n";
+        }
+
+        return batchContent;
+    }
+
+    private logProgressIfNeeded(totalLength: number, currentIndex: number, filePath: string): void {
+        if (totalLength > 1000 && currentIndex % 1000 === 0) {
+            console.log(`Wrote ${currentIndex}/${totalLength} records to ${filePath}`);
         }
     }
 
