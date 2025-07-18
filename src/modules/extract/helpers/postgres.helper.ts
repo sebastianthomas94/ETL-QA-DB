@@ -51,11 +51,18 @@ export class PostgresHelper {
         return result.rows.map((row) => row.table_name);
     }
 
-    async extractTable(tableName: string): Promise<IExtractResult> {
+    async extractTable(tableName: string, lastExtractionTime?: Date | null): Promise<IExtractResult> {
         if (!this.client) throw new Error("Not connected to PostgreSQL");
 
-        const query = `SELECT * FROM "${tableName}"`;
-        const result = await this.client.query(query);
+        let query = `SELECT * FROM "${tableName}"`;
+        const queryParams: (Date | string | number)[] = [];
+
+        if (lastExtractionTime) {
+            query += ` WHERE (created_at > $1 OR updated_at > $1)`;
+            queryParams.push(lastExtractionTime);
+        }
+
+        const result = await this.client.query(query, queryParams);
 
         const filename = generateTimestampedFilename(tableName, FILE_EXTENSIONS.CSV);
         const filePath = `${EXTRACT_PATHS.POSTGRES}/${filename}`;
@@ -75,14 +82,14 @@ export class PostgresHelper {
         };
     }
 
-    async extractAllTables(specificTables?: string[]): Promise<IExtractResult[]> {
+    async extractAllTables(specificTables?: string[], lastExtractionTime?: Date | null): Promise<IExtractResult[]> {
         const tableNames = specificTables?.length ? specificTables : await this.getAllTableNames();
 
         const results: IExtractResult[] = [];
 
         for (const tableName of tableNames) {
             try {
-                const result = await this.extractTable(tableName);
+                const result = await this.extractTable(tableName, lastExtractionTime);
                 results.push(result);
                 this.logger.log(`Extracted ${result.recordCount} rows from ${tableName}`);
             } catch (error) {

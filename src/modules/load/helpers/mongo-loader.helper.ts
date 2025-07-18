@@ -53,33 +53,51 @@ export class MongoLoader {
 
             const collection: Collection = this.db.collection(collectionOrTableName);
 
-            // Clear existing data
-            await collection.deleteMany({});
-            this.logger.log(`Cleared existing data from collection: ${collectionOrTableName}`);
-
-            // Insert documents in batches
+            // Upsert documents in batches (update if _id exists, insert if new)
             const totalDocuments = documents.length;
+            let upsertedCount = 0;
             let insertedCount = 0;
+            let modifiedCount = 0;
 
             for (let i = 0; i < totalDocuments; i += BATCH_SIZE.MONGO_INSERT) {
                 const batch = documents.slice(i, i + BATCH_SIZE.MONGO_INSERT);
-                await collection.insertMany(batch as Record<string, unknown>[]);
-                insertedCount += batch.length;
 
-                if (insertedCount % (BATCH_SIZE.MONGO_INSERT * 5) === 0) {
+                // Process each document individually for upsert
+                for (const doc of batch) {
+                    const docRecord = doc as Record<string, unknown>;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const result = await collection.replaceOne(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        { _id: docRecord._id } as any,
+                        docRecord,
+                        { upsert: true },
+                    );
+
+                    if (result.upsertedCount && result.upsertedCount > 0) {
+                        insertedCount++;
+                    } else if (result.modifiedCount && result.modifiedCount > 0) {
+                        modifiedCount++;
+                    }
+                }
+
+                upsertedCount += batch.length;
+
+                if (upsertedCount % (BATCH_SIZE.MONGO_INSERT * 5) === 0) {
                     this.logger.log(
-                        `Inserted ${insertedCount}/${totalDocuments} documents into ${collectionOrTableName}`,
+                        `Processed ${upsertedCount}/${totalDocuments} documents for ${collectionOrTableName}`,
                     );
                 }
             }
 
-            this.logger.log(`✅ Successfully loaded ${insertedCount} documents into ${collectionOrTableName}`);
+            this.logger.log(
+                `✅ Successfully processed ${upsertedCount} documents for ${collectionOrTableName} (${insertedCount} new, ${modifiedCount} updated)`,
+            );
 
             return {
                 source: "mongo",
                 collectionName: collectionOrTableName,
-                recordCount: insertedCount,
-                operation: "replace",
+                recordCount: upsertedCount,
+                operation: "upsert",
                 timestamp: new Date(),
             };
         } catch (error) {
