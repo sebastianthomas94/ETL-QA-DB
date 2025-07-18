@@ -41,11 +41,20 @@ export class MongoHelper {
         return collections.map((col) => col.name);
     }
 
-    async extractCollection(collectionName: string): Promise<IExtractResult> {
+    async extractCollection(collectionName: string, lastExtractionTime?: Date | null): Promise<IExtractResult> {
         if (!this.db) throw new Error("Not connected to MongoDB");
 
         const collection: Collection = this.db.collection(collectionName);
-        const documents = await collection.find({}).toArray();
+
+        // Build query for incremental extraction
+        let query = {};
+        if (lastExtractionTime) {
+            query = {
+                $or: [{ createdAt: { $gt: lastExtractionTime } }, { updatedAt: { $gt: lastExtractionTime } }],
+            };
+        }
+
+        const documents = await collection.find(query).toArray();
 
         const filename = generateTimestampedFilename(collectionName, FILE_EXTENSIONS.JSON);
         const filePath = `${EXTRACT_PATHS.MONGO}/${filename}`;
@@ -64,14 +73,17 @@ export class MongoHelper {
         };
     }
 
-    async extractAllCollections(specificCollections?: string[]): Promise<IExtractResult[]> {
+    async extractAllCollections(
+        specificCollections?: string[],
+        lastExtractionTime?: Date | null,
+    ): Promise<IExtractResult[]> {
         const collectionNames = specificCollections?.length ? specificCollections : await this.getAllCollectionNames();
 
         const results: IExtractResult[] = [];
 
         for (const collectionName of collectionNames) {
             try {
-                const result = await this.extractCollection(collectionName);
+                const result = await this.extractCollection(collectionName, lastExtractionTime);
                 results.push(result);
                 this.logger.log(`Extracted ${result.recordCount} documents from ${collectionName}`);
             } catch (error) {
