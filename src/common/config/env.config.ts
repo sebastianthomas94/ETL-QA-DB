@@ -79,6 +79,32 @@ export class EnvironmentVariables {
 
     @IsString()
     QA_PG_PASS: string;
+
+    @IsString()
+    PROD_R2_ACCESS_KEY_ID: string;
+
+    @IsString()
+    PROD_R2_SECRET_ACCESS_KEY: string;
+
+    @IsString()
+    @IsOptional()
+    PROD_R2_REGION?: string;
+
+    @IsString()
+    PROD_R2_ENDPOINT: string;
+
+    @IsString()
+    QA_R2_ACCESS_KEY_ID: string;
+
+    @IsString()
+    QA_R2_SECRET_ACCESS_KEY: string;
+
+    @IsString()
+    @IsOptional()
+    QA_R2_REGION?: string;
+
+    @IsString()
+    QA_R2_ENDPOINT: string;
 }
 
 export function validate(config: Record<string, unknown>) {

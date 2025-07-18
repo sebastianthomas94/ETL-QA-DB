@@ -20,7 +20,7 @@ export class MongoHelper {
             this.db = this.client.db();
             this.logger.log("Connected to MongoDB");
         } catch (error) {
-            this.logger.error("Failed to connect to MongoDB", error);
+            this.logger.error(`Failed to connect to MongoDB: ${error}`);
             throw error;
         }
     }
@@ -87,7 +87,7 @@ export class MongoHelper {
                 results.push(result);
                 this.logger.log(`Extracted ${result.recordCount} documents from ${collectionName}`);
             } catch (error) {
-                this.logger.error(`Failed to extract collection ${collectionName}`, error);
+                this.logger.error(`Failed to extract collection ${collectionName}: ${error}`);
             }
         }
 

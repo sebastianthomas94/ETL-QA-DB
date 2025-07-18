@@ -45,7 +45,7 @@ export class LoadService {
 
             return summary;
         } catch (error) {
-            this.logger.error("Load process failed", error);
+            this.logger.error(`Load process failed: ${error}`);
             throw error;
         }
     }
@@ -71,7 +71,7 @@ export class LoadService {
             this.logger.log(`MongoDB load completed: ${results.length} collections loaded`);
             return results;
         } catch (error) {
-            this.logger.error("MongoDB load failed", error);
+            this.logger.error(`MongoDB load failed: ${error}`);
             throw error;
         } finally {
             await mongoLoader.disconnect();
@@ -99,7 +99,7 @@ export class LoadService {
             this.logger.log(`PostgreSQL load completed: ${results.length} tables loaded`);
             return results;
         } catch (error) {
-            this.logger.error("PostgreSQL load failed", error);
+            this.logger.error(`PostgreSQL load failed: ${error}`);
             throw error;
         } finally {
             await pgLoader.disconnect();

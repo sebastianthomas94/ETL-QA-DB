@@ -24,7 +24,7 @@ export class PostgresHelper {
             await this.client.connect();
             this.logger.log("Connected to PostgreSQL");
         } catch (error) {
-            this.logger.error("Failed to connect to PostgreSQL", error);
+            this.logger.error(`Failed to connect to PostgreSQL: ${error}`);
             throw error;
         }
     }
@@ -58,7 +58,7 @@ export class PostgresHelper {
         const queryParams: (Date | string | number)[] = [];
 
         if (lastExtractionTime) {
-            query += ` WHERE (created_at > $1 OR updated_at > $1)`;
+            query += ` WHERE ("createdAt" > $1 OR "updatedAt" > $1)`;
             queryParams.push(lastExtractionTime);
         }
 
@@ -93,7 +93,7 @@ export class PostgresHelper {
                 results.push(result);
                 this.logger.log(`Extracted ${result.recordCount} rows from ${tableName}`);
             } catch (error) {
-                this.logger.error(`Failed to extract table ${tableName}`, error);
+                this.logger.error(`Failed to extract table ${tableName}: ${error}`);
             }
         }
 

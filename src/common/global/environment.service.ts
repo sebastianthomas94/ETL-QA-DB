@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { IDatabaseConfig, IMongoConfig } from "../../modules/extract/interfaces/extract.interface";
+import { IS3Config } from "../../modules/load/interfaces/assets.interface";
 
 @Injectable()
 export class EnvironmentService {
@@ -71,5 +72,31 @@ export class EnvironmentService {
                   }
                 : undefined,
         };
+    }
+
+    get productionR2(): IS3Config {
+        return {
+            accessKeyId: this.configService.get<string>("PROD_R2_ACCESS_KEY_ID")!,
+            secretAccessKey: this.configService.get<string>("PROD_R2_SECRET_ACCESS_KEY")!,
+            region: this.configService.get<string>("PROD_R2_REGION") ?? "auto",
+            endpoint: this.configService.get<string>("PROD_R2_ENDPOINT")!,
+        };
+    }
+
+    get qaR2(): IS3Config {
+        return {
+            accessKeyId: this.configService.get<string>("QA_R2_ACCESS_KEY_ID")!,
+            secretAccessKey: this.configService.get<string>("QA_R2_SECRET_ACCESS_KEY")!,
+            region: this.configService.get<string>("QA_R2_REGION") ?? "auto",
+            endpoint: this.configService.get<string>("QA_R2_ENDPOINT")!,
+        };
+    }
+
+    get productionR2BucketName(): string {
+        return this.configService.get<string>("PROD_R2_BUCKET_NAME") || "";
+    }
+
+    get qaR2BucketName(): string {
+        return this.configService.get<string>("QA_R2_BUCKET_NAME") || "";
     }
 }

@@ -3,6 +3,7 @@ import { ExtractService } from "@modules/extract/extract.service";
 import { IETLPipelineResult } from "./interfaces/etl-pipeline.interface";
 import { TransformService } from "@modules/transform/transform.service";
 import { LoadService } from "@modules/load/load.service";
+import { AssetsLoadService } from "@modules/load/services/assets-load.service";
 
 @Injectable()
 export class ETLPipelineService {
@@ -12,6 +13,7 @@ export class ETLPipelineService {
         private readonly extractService: ExtractService,
         private readonly transformService: TransformService,
         private readonly loadService: LoadService,
+        private readonly assetsService: AssetsLoadService,
     ) {}
 
     async runFullPipeline(): Promise<IETLPipelineResult> {
@@ -40,6 +42,9 @@ export class ETLPipelineService {
 
             const pipelineEndTime = new Date();
             const totalDuration = pipelineEndTime.getTime() - pipelineStartTime.getTime();
+
+            this.logger.log("📦 Phase 4: Migrating assets to QA...");
+            await this.assetsService.migrateAssets();
 
             const result: IETLPipelineResult = {
                 extract: {
@@ -73,7 +78,7 @@ export class ETLPipelineService {
             const pipelineEndTime = new Date();
             const totalDuration = pipelineEndTime.getTime() - pipelineStartTime.getTime();
 
-            this.logger.error("❌ ETL Pipeline failed", error);
+            this.logger.error("❌ ETL Pipeline failed:" + JSON.stringify(error, null, 2));
 
             return {
                 extract: { totalRecords: 0, duration: 0, files: 0 },

@@ -207,18 +207,18 @@ export class PostgresLoader {
         let query: string;
         if (updateColumns && hasIdColumn) {
             query = `
-                INSERT INTO "${tableName}" (${columnNames})
-                VALUES ${valuePlaceholders.join(", ")}
-                ON CONFLICT (${conflictColumn}) DO UPDATE SET
-                ${updateColumns}
-            `;
+            INSERT INTO "${tableName}" (${columnNames})
+            VALUES ${valuePlaceholders.join(", ")}
+            ON CONFLICT (${conflictColumn}) DO UPDATE SET
+            ${updateColumns}
+        `;
         } else {
             // If no updateable columns (only id), use DO NOTHING
             query = `
-                INSERT INTO "${tableName}" (${columnNames})
-                VALUES ${valuePlaceholders.join(", ")}
-                ON CONFLICT (${conflictColumn}) DO NOTHING
-            `;
+            INSERT INTO "${tableName}" (${columnNames})
+            VALUES ${valuePlaceholders.join(", ")}
+            ON CONFLICT (${conflictColumn}) DO NOTHING
+        `;
         }
 
         await this.client.query(query, values);

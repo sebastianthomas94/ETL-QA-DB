@@ -66,12 +66,12 @@ export class CsvTransformer {
                             resolve(count);
                         })
                         .on("error", (err: Error) => {
-                            this.logger.error("❌ CSV write error:", err);
+                            this.logger.error("❌ CSV write error:" + err);
                             reject(err);
                         });
                 })
                 .on("error", (err: Error) => {
-                    this.logger.error("❌ CSV read error:", err);
+                    this.logger.error("❌ CSV read error:" + err);
                     reject(err);
                 });
         });

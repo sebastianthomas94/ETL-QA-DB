@@ -24,7 +24,7 @@ export class ExtractionTrackerService {
 
             return new Date(tracker["last-extraction-time"]);
         } catch (error) {
-            this.logger.warn("Could not read extraction date file", error);
+            this.logger.warn(`Could not read extraction date file: ${error}`);
             return null;
         }
     }
@@ -43,7 +43,7 @@ export class ExtractionTrackerService {
             writeFileSync(this.trackerFilePath, JSON.stringify(tracker, null, 2));
             this.logger.log("Extraction date saved successfully");
         } catch (error) {
-            this.logger.error("Failed to save extraction date", error);
+            this.logger.error(`Failed to save extraction date: ${error}`);
             throw error;
         }
     }

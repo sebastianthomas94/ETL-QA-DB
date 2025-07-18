@@ -57,7 +57,7 @@ export class ExtractService {
 
             return summary;
         } catch (error) {
-            this.logger.error("Extraction failed", error);
+            this.logger.error(`Extraction failed: ${error}`);
             throw error;
         }
     }
@@ -79,7 +79,7 @@ export class ExtractService {
             this.logger.log(`MongoDB PROD extraction completed: ${results.length} collections`);
             return results;
         } catch (error) {
-            this.logger.error(`MongoDB PROD extraction failed`, error);
+            this.logger.error(`MongoDB PROD extraction failed: ${error}`);
             throw error;
         } finally {
             await mongoHelper.disconnect();
@@ -103,7 +103,7 @@ export class ExtractService {
             this.logger.log(`PostgreSQL PROD extraction completed: ${results.length} tables`);
             return results;
         } catch (error) {
-            this.logger.error(`PostgreSQL PROD extraction failed`, error);
+            this.logger.error(`PostgreSQL PROD extraction failed: ${error}`);
             throw error;
         } finally {
             await pgHelper.disconnect();
