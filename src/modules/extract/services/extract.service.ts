@@ -6,15 +6,7 @@ import { PostgresHelper } from "../helpers/pg.helper";
 
 @Injectable()
 export class ExtractService {
-    constructor(private readonly environmentService: EnvironmentService) {
-        this.run()
-            .then(() => {
-                console.log("Extraction process completed successfully!");
-            })
-            .catch((error) => {
-                console.error("Error during extraction process:", error);
-            });
-    }
+    constructor(private readonly environmentService: EnvironmentService) {}
 
     async run(): Promise<void> {
         console.log("Starting data extraction process...");
@@ -74,7 +66,7 @@ export class ExtractService {
                 const documents = await mongoHelper.getCollectionDataStream(collectionName);
                 allData.push({
                     collectionName,
-                    documents,
+                    data: documents,
                     count,
                 });
             }
