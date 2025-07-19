@@ -49,7 +49,6 @@ export class MongoHelper {
 
         for (const collectionName of collectionNames) {
             const count = await this.getCollectionCount(collectionName);
-            console.log(`Processing collection "${collectionName}" with ${count} documents`);
 
             allData.push({
                 collectionName,
@@ -77,7 +76,6 @@ export class MongoHelper {
             } else {
                 allDocuments.push(...batch);
                 skip += batchSize;
-                console.log(`Processed ${skip} documents from "${collectionName}"`);
             }
         }
 

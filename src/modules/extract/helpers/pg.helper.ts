@@ -100,7 +100,6 @@ export class PostgresHelper {
         for (const tableName of tableNames) {
             const rowCount = await this.getTableRowCount(tableName);
             const tableInfo = await this.getTableInfo(tableName);
-            console.log(`Processing table "${tableName}" with ${rowCount} rows`);
 
             const tableData = await this.getTableDataStream(tableName);
 
@@ -135,7 +134,6 @@ export class PostgresHelper {
                 } else {
                     allRows.push(...result.rows);
                     offset += batchSize;
-                    console.log(`Processed ${offset} rows from "${tableName}"`);
                 }
             } finally {
                 client.release();
