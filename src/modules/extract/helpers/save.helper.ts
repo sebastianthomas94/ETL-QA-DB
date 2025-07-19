@@ -33,8 +33,7 @@ export class SaveHelper {
 
         console.log(`Starting to save ${data.length} PostgreSQL tables...`);
 
-        for (let i = 0; i < data.length; i++) {
-            const tableData = data[i];
+        for (const tableData of data) {
             const { tableName, data: tableRows, rowCount, columns } = tableData;
             const fileName = `${tableName}.json`;
             const filePath = path.join(pgDir, fileName);
